@@ -37,3 +37,6 @@ Each module must follow this internal structure:
 - Use **Yarn** for package management.
 - Ensure all new entities are added to the corresponding `domain/entities` directory.
 - Maintain consistency with the Laravel-style configuration for environment variables.
+
+## Package Management
+- Use **Yarn** for package management.
