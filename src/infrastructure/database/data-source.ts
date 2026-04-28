@@ -14,5 +14,5 @@ export const AppDataSource = new DataSource({
   schema: process.env.DB_SCHEMA || 'public',
   entities: [join(__dirname, '../../modules/**/domain/entities/*.entity{.ts,.js}')],
   migrations: [join(__dirname, '../../database/migrations/*{.ts,.js}')],
-  synchronize: false,
+  synchronize: process.env.NODE_ENV === 'production' ? false : true,
 });

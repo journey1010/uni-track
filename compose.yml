@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15-alpine
+    image: docker.io/postgres:alpine3.23
     container_name: postgres_db
     restart: always
     environment:
@@ -10,7 +10,7 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
-      - ./docker/postgres/data:/var/lib/postgresql/data:z
+      - ./container:/var/lib/postgresql/data:z
 
 networks:
   default:
