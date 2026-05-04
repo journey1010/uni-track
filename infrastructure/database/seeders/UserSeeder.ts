@@ -7,9 +7,7 @@ import { Role } from '../../src/modules/authorization/domain/entities/role.entit
 export default class UserSeeder implements Seeder {
   private readonly logger = new Logger(UserSeeder.name);
 
-  public async run(
-    dataSource: DataSource,
-  ): Promise<any> {
+  public async run(dataSource: DataSource):     Promise<any> {
     this.logger.log('Seeding initial User...');
 
     const userRepository = dataSource.getRepository(User);
