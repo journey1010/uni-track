@@ -1,26 +1,24 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import { Logger } from '@nestjs/common';
-import { Role } from '../../src/modules/authorization/domain/entities/role.entity';
-import { Permission } from '../../src/modules/authorization/domain/entities/permission.entity';
+import { Role } from '../../../src/modules/authorization/domain/entities/role.entity';
+import { Permission } from '../../../src/modules/authorization/domain/entities/permission.entity';
 
 export default class RbacSeeder implements Seeder {
   private readonly logger = new Logger(RbacSeeder.name);
 
-  public async run(
-    dataSource: DataSource,
-  ): Promise<any> {
+  public async run(dataSource: DataSource  ): Promise<any> {
     this.logger.log('Seeding RBAC (Roles and Permissions)...');
 
     const permissionRepository = dataSource.getRepository(Permission);
     const roleRepository = dataSource.getRepository(Role);
 
-    // Define permissions
     const permissionsData = [
+      { name: '*', display_name: 'Elden Lord', description: 'Magic tricks', code: 999 },
       { name: 'users.view', display_name: 'View Users', description: 'Can view users list', code: 100 },
       { name: 'users.create', display_name: 'Create Users', description: 'Can create new users', code: 101 },
       { name: 'users.edit', display_name: 'Edit Users', description: 'Can edit existing users', code: 102 },
-      { name: 'users.delete', display_name: 'Delete Users', description: 'Can delete users', code: 103 },
+      { name: 'users.delete', display_name: 'Delete Users', description: 'Can soft delete users', code: 103 },
     ];
 
     const seededPermissions: Permission[] = [];

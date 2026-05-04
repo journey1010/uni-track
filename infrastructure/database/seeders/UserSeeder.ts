@@ -1,8 +1,8 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import { Logger } from '@nestjs/common';
-import { User } from '../../src/modules/users/domain/entities/user.entity';
-import { Role } from '../../src/modules/authorization/domain/entities/role.entity';
+import { User } from '../../../src/modules/users/domain/entities/user.entity';
+import { Role } from '../../../src/modules/authorization/domain/entities/role.entity';
 
 export default class UserSeeder implements Seeder {
   private readonly logger = new Logger(UserSeeder.name);
