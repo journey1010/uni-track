@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
 import { join } from 'path';
+import { SnakeNamingStrategy } from './snake-naming.strategy';
 
 config();
 
@@ -14,6 +15,6 @@ export const AppDataSource = new DataSource({
   schema: process.env.DB_SCHEMA || 'public',
   entities: [join(process.cwd(), 'src/modules/**/domain/entities/*.entity{.ts,.js}')],
   migrations: [join(process.cwd(), 'infrastructure/database/migrations/*{.ts,.js}')],
-  synchronize: process.env.NODE_ENV === 'development' ? true : false,
+  namingStrategy: new SnakeNamingStrategy(),
+  synchronize: false,
 } as any);
-
