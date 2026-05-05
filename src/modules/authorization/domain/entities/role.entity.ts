@@ -23,8 +23,8 @@ export class Role {
   @Column({ type: 'varchar', nullable: true })
   description: string;
 
-  @Column({ type: 'int', nullable: true })
-  code: number;
+  @Column({ type: 'boolean', default: true})
+  is_active: boolean;
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;

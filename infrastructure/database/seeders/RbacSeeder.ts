@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { Logger } from '@nestjs/common';
 import { Role } from '../../../src/modules/authorization/domain/entities/role.entity';
 import { Permission } from '../../../src/modules/authorization/domain/entities/permission.entity';
+import { Permission as PermissionEnum } from '../../../src/modules/authorization/domain/Enums/permissions';
 
 export default class RbacSeeder implements Seeder {
   private readonly logger = new Logger(RbacSeeder.name);
@@ -14,11 +15,15 @@ export default class RbacSeeder implements Seeder {
     const roleRepository = dataSource.getRepository(Role);
 
     const permissionsData = [
-      { name: '*', display_name: 'Elden Lord', description: 'Magic tricks', code: 999 },
-      { name: 'users.view', display_name: 'View Users', description: 'Can view users list', code: 100 },
-      { name: 'users.create', display_name: 'Create Users', description: 'Can create new users', code: 101 },
-      { name: 'users.edit', display_name: 'Edit Users', description: 'Can edit existing users', code: 102 },
-      { name: 'users.delete', display_name: 'Delete Users', description: 'Can soft delete users', code: 103 },
+      { name: '*', display_name: 'Elden Lord', description: 'Magic tricks', code: PermissionEnum.ELDENLORD },
+      { name: 'users.view', display_name: 'View Users', description: 'Can view users list', code: PermissionEnum.USERS_VIEW },
+      { name: 'users.create', display_name: 'Create Users', description: 'Can create new users', code: PermissionEnum.USERS_CREATE },
+      { name: 'users.edit', display_name: 'Edit Users', description: 'Can edit existing users', code: PermissionEnum.USERS_EDIT },
+      { name: 'users.delete', display_name: 'Delete Users', description: 'Can soft delete users', code: PermissionEnum.USERS_DELETE },
+      { name: 'authorization.view', display_name: 'View Authorization', description: 'Can view authorization list (Roles And Permissions)', code: PermissionEnum.AUTHORIZATION_VIEW },
+      { name: 'authorization.create', display_name: 'Create Authorization', description: 'Can create new authorization', code: PermissionEnum.AUTHORIZATION_CREATE },
+      { name: 'authorization.edit', display_name: 'Edit Authorization', description: 'Can edit existing authorization', code: PermissionEnum.AUTHORIZATION_EDIT },
+      { name: 'authorization.delete', display_name: 'Delete Authorization', description: 'Can soft delete authorization', code: PermissionEnum.AUTHORIZATION_DELETE },
     ];
 
     const seededPermissions: Permission[] = [];
@@ -30,32 +35,28 @@ export default class RbacSeeder implements Seeder {
           { code: data.code }
         ]
       });
-
-      if (permission) {
-        permission.display_name = data.display_name;
-        permission.description = data.description;
-        permission.code = data.code;
-        permission.name = data.name;
-      } else {
-        permission = permissionRepository.create(data);
-      }
       
+      if(permission){
+        this.logger.log(`This permission already exists, Skipping: ${data.name}`);
+        continue;
+      }
+
+      permission = permissionRepository.create(data);
       const savedPermission = await permissionRepository.save(permission);
       seededPermissions.push(savedPermission);
     }
 
     // Define roles
     const rolesData = [
-      { name: 'admin', display_name: 'Administrator', description: 'System Administrator', code: 1 },
-      { name: 'manager', display_name: 'Manager', description: 'System Manager', code: 2 },
-      { name: 'user', display_name: 'User', description: 'Standard User', code: 3 },
+      { name: 'admin', display_name: 'Administrator', description: 'System Administrator'},
+      { name: 'manager', display_name: 'Manager', description: 'System Manager'},
+      { name: 'user', display_name: 'User', description: 'Standard User'},
     ];
 
     for (const data of rolesData) {
       let role = await roleRepository.findOne({
         where: [
-          { name: data.name },
-          { code: data.code }
+          { name: data.name }
         ],
         relations: ['permissions']
       });
@@ -63,7 +64,6 @@ export default class RbacSeeder implements Seeder {
       if (role) {
         role.display_name = data.display_name;
         role.description = data.description;
-        role.code = data.code;
         role.name = data.name;
       } else {
         role = roleRepository.create(data);
