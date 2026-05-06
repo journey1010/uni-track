@@ -3,52 +3,39 @@ import { DataSource } from 'typeorm';
 import { Logger } from '@nestjs/common';
 import { User } from '../../../src/modules/users/domain/entities/user.entity';
 import { Role } from '../../../src/modules/authorization/domain/entities/role.entity';
+import { Permission } from 'src/modules/authorization/domain/entities/permission.entity';
+import { UserStatus } from '../../../src/modules/users/domain/Enums/user.status';
+import { DateTime } from '../../config/timezone.config';
+import { Hash } from '../../../infrastructure/helpers/Hash';
 
 export default class UserSeeder implements Seeder {
   private readonly logger = new Logger(UserSeeder.name);
 
-  public async run(dataSource: DataSource):     Promise<any> {
+  public async run(dataSource: DataSource): Promise<void> {
     this.logger.log('Seeding initial User...');
 
     const userRepository = dataSource.getRepository(User);
     const roleRepository = dataSource.getRepository(Role);
+    const permissionRepository = dataSource.getRepository(Permission);
 
-    const adminRole = await roleRepository.findOne({ where: { name: 'admin' } });
-
-    if (!adminRole) {
-      this.logger.warn('Admin role not found. Skipping user assignment.');
-      return;
-    }
+    const eldenLordRole = await roleRepository.findOne({ where: { name: 'elden_lord' } });
+    const eldenLordPermission = await permissionRepository.findOne( { where: { name: '*'}})
 
     const userData = {
       name: 'System',
       last_name: 'Administrator',
       dni: '00000000',
-      email: 'admin@uni-track.com',
-      status: 1,
-      level: 1,
+      phone: '00000000',
+      email: 'ginopaflo001608@gmail.com',
+      status: UserStatus.ACTIVE,
+      level: 0,
+      password: await Hash.make('password'),
+      created_at: DateTime.now().toString(),
+      updated_at: DateTime.now().toString(),
     };
-
-    let adminUser = await userRepository.findOne({
-      where: [
-        { email: userData.email },
-        { dni: userData.dni }
-      ],
-      relations: ['roles']
-    });
-
-    if (adminUser) {
-      adminUser.name = userData.name;
-      adminUser.last_name = userData.last_name;
-      adminUser.status = userData.status;
-      adminUser.level = userData.level;
-    } else {
-      adminUser = userRepository.create(userData);
-    }
-
-    adminUser.roles = [adminRole];
     
-    await userRepository.save(adminUser);
+    const user = userRepository.create(userData);
+    await userRepository.save(user);
 
     this.logger.log('User Seeding completed successfully.');
   }
