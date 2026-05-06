@@ -30,6 +30,8 @@ export default class UserSeeder implements Seeder {
       status: UserStatus.ACTIVE,
       level: 0,
       password: await Hash.make('password'),
+      role: eldenLordRole,
+      permission: eldenLordPermission,
       created_at: DateTime.now().toString(),
       updated_at: DateTime.now().toString(),
     };
