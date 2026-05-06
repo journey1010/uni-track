@@ -1,6 +1,5 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { Logger } from '@nestjs/common';
 import { User } from '../../../src/modules/users/domain/entities/user.entity';
 import { Role } from '../../../src/modules/authorization/domain/entities/role.entity';
 import { Permission } from '../../../src/modules/authorization/domain/entities/permission.entity';
@@ -9,10 +8,8 @@ import { DateTime } from '../../config/timezone.config';
 import { Hash } from '../../../infrastructure/helpers/Hash';
 
 export default class UserSeeder implements Seeder {
-  private readonly logger = new Logger(UserSeeder.name);
-
   public async run(dataSource: DataSource): Promise<void> {
-    this.logger.log('Seeding initial User...');
+    console.log('Seeding initial User...');
 
     const userRepository = dataSource.getRepository(User);
     const roleRepository = dataSource.getRepository(Role);
@@ -39,6 +36,6 @@ export default class UserSeeder implements Seeder {
     const user = userRepository.create(userData);
     await userRepository.save(user);
 
-    this.logger.log('User Seeding completed successfully.');
+    console.log('User Seeding completed successfully.');
   }
 }

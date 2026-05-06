@@ -1,15 +1,12 @@
 import { Seeder } from 'typeorm-extension';
 import { Repository, DataSource } from 'typeorm';
-import { Logger } from '@nestjs/common';
 import { Role } from '../../../src/modules/authorization/domain/entities/role.entity';
 import { Permission } from '../../../src/modules/authorization/domain/entities/permission.entity';
 import { Permission as PermissionEnum } from '../../../src/modules/authorization/domain/Enums/permissions';
 
 export default class RbacSeeder implements Seeder {
-  private readonly logger = new Logger(RbacSeeder.name);
-
-  public async run(dataSource: DataSource): Promise<any> {
-    this.logger.log('Seeding RBAC (Roles and Permissions)...');
+  public async run(dataSource: DataSource): Promise<void> {
+    console.log('Seeding RBAC (Roles and Permissions)...');
 
     const permissionRepository = dataSource.getRepository(Permission);
     const roleRepository = dataSource.getRepository(Role);
@@ -17,7 +14,7 @@ export default class RbacSeeder implements Seeder {
     const seededPermissions = await this.seedPermission(permissionRepository);
     await this.seedRoles(roleRepository, seededPermissions);
 
-    this.logger.log('RBAC Seeding completed successfully.');
+    console.log('RBAC Seeding completed successfully.');
   }
 
   private async seedRoles(roleRepository: Repository<Role>, seededPermissions: Permission[]): Promise<void> {
