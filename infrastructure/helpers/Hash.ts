@@ -3,12 +3,6 @@ import * as argon2 from 'argon2';
 import { hashingConfig } from '../config/hashing.config';
 
 export class Hash {
-  /**
-   * Hash the given value.
-   *
-   * @param value
-   * @returns
-   */
   static async make(value: string): Promise<string> {
     const { driver, bcrypt: bcryptConfig, argon: argonConfig } = hashingConfig;
 
@@ -27,13 +21,6 @@ export class Hash {
     throw new Error(`Driver [${driver}] not supported.`);
   }
 
-  /**
-   * Check the given plain value against a hash.
-   *
-   * @param value
-   * @param hashedValue
-   * @returns
-   */
   static async check(value: string, hashedValue: string): Promise<boolean> {
     const { driver } = hashingConfig;
 

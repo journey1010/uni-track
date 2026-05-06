@@ -36,7 +36,10 @@ export class User {
   @Column({ type: 'smallint' })
   status: number;
 
-  @Column({ type: 'smallint' })
+  @Column({ type: 'varchar' })
+  password: string;
+
+  @Column({ type: 'smallint' }) 
   level: number;
 
   @CreateDateColumn({ type: 'timestamp' })
