@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import { Logger } from '@nestjs/common';
 import { User } from '../../../src/modules/users/domain/entities/user.entity';
 import { Role } from '../../../src/modules/authorization/domain/entities/role.entity';
-import { Permission } from 'src/modules/authorization/domain/entities/permission.entity';
+import { Permission } from '../../../src/modules/authorization/domain/entities/permission.entity';
 import { UserStatus } from '../../../src/modules/users/domain/Enums/user.status';
 import { DateTime } from '../../config/timezone.config';
 import { Hash } from '../../../infrastructure/helpers/Hash';
@@ -19,7 +19,7 @@ export default class UserSeeder implements Seeder {
     const permissionRepository = dataSource.getRepository(Permission);
 
     const eldenLordRole = await roleRepository.findOne({ where: { name: 'elden_lord' } });
-    const eldenLordPermission = await permissionRepository.findOne( { where: { name: '*'}})
+    const eldenLordPermission = await permissionRepository.findOne({ where: { name: '*' } });
 
     const userData = {
       name: 'System',
@@ -30,12 +30,12 @@ export default class UserSeeder implements Seeder {
       status: UserStatus.ACTIVE,
       level: 0,
       password: await Hash.make('password'),
-      role: eldenLordRole,
-      permission: eldenLordPermission,
+      roles: eldenLordRole ? [eldenLordRole] : [],
+      permissions: eldenLordPermission ? [eldenLordPermission] : [],
       created_at: DateTime.now().toString(),
       updated_at: DateTime.now().toString(),
     };
-    
+
     const user = userRepository.create(userData);
     await userRepository.save(user);
 
