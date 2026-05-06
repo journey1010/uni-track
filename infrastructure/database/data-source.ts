@@ -22,7 +22,7 @@ const options: DataSourceOptions & SeederOptions = {
   seeds: [join(process.cwd(), 'infrastructure/database/seeders/MainSeeder.ts')],
   factories: [join(process.cwd(), 'infrastructure/database/factories/**/*{.ts,.js}')],
   namingStrategy: new SnakeNamingStrategy(),
-  synchronize: process.env.NODE_ENV === 'development' ? true : false,
+  synchronize: process.env.APP_ENV === 'production' ? false : true,
 };
 
 export const AppDataSource = new DataSource(options);
