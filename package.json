@@ -18,8 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "db:seed": "ts-node-esm ./node_modules/typeorm-extension/bin/cli.cjs seed:run -d infrastructure/database/data-source.ts",
-    "make:seed": "ts-node-esm ./node_modules/typeorm-extension/bin/cli.cjs seed:create -d infrastructure/database/data-source.ts",
+    "db:seed": "APP_ENV=production ts-node-esm ./node_modules/typeorm-extension/bin/cli.mjs seed:run -d infrastructure/database/data-source.ts",
+    "make:seed": "APP_ENV=production ts-node-esm ./node_modules/typeorm-extension/bin/cli.mjs seed:create -d infrastructure/database/data-source.ts",
     "typeorm": "typeorm-ts-node-commonjs"
   },
   "dependencies": {
