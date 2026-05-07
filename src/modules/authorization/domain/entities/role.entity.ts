@@ -11,7 +11,7 @@ import { Permission } from './permission.entity';
 
 @Entity('roles')
 export class Role {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn({ type: 'bigint'})
   id: string;
 
   @Column({ type: 'varchar', unique: true })

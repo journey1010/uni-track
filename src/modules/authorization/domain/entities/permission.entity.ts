@@ -8,7 +8,7 @@ import {
 
 @Entity('permissions')
 export class Permission {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn({ type: 'bigint'})
   id: string;
 
   @Column({ type: 'varchar', unique: true })

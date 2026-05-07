@@ -1,5 +1,5 @@
 import { Seeder } from 'typeorm-extension';
-import { DataSource } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { User } from '../../../src/modules/users/domain/entities/user.entity';
 import { Role } from '../../../src/modules/authorization/domain/entities/role.entity';
 import { Permission } from '../../../src/modules/authorization/domain/entities/permission.entity';
@@ -8,7 +8,7 @@ import { DateTime } from '../../config/timezone.config';
 import { Hash } from '../../../infrastructure/helpers/Hash';
 
 export default class UserSeeder implements Seeder {
-  public async run(dataSource: DataSource): Promise<void> {
+  public async run(dataSource: DataSource | EntityManager): Promise<void> {
     console.log('Seeding initial User...');
 
     const userRepository = dataSource.getRepository(User);
@@ -29,8 +29,8 @@ export default class UserSeeder implements Seeder {
       password: await Hash.make('password'),
       roles: eldenLordRole ? [eldenLordRole] : [],
       permissions: eldenLordPermission ? [eldenLordPermission] : [],
-      created_at: DateTime.now().toString(),
-      updated_at: DateTime.now().toString(),
+      created_at: DateTime.now().toJSDate(),
+      updated_at: DateTime.now().toJSDate(),
     };
 
     const user = userRepository.create(userData);

@@ -6,6 +6,7 @@ import { SnakeNamingStrategy } from './snake-naming.strategy';
 import { User } from '../../src/modules/users/domain/entities/user.entity';
 import { Role } from '../../src/modules/authorization/domain/entities/role.entity';
 import { Permission } from '../../src/modules/authorization/domain/entities/permission.entity';
+import { Migration } from '../../src/modules/MigrationSeeders/domain/Entities/migration.entity';
 
 config();
 
@@ -17,7 +18,7 @@ const options: DataSourceOptions & SeederOptions = {
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'super_secure_root_password',
   schema: process.env.DB_SCHEMA || 'public',
-  entities: [User, Role, Permission],
+  entities: [User, Role, Permission, Migration],
   migrations: [join(process.cwd(), 'infrastructure/database/migrations/*{.ts,.js}')],
   seeds: [join(process.cwd(), 'infrastructure/database/seeders/MainSeeder.ts')],
   factories: [join(process.cwd(), 'infrastructure/database/factories/**/*{.ts,.js}')],

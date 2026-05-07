@@ -12,7 +12,7 @@ import { Permission } from '../../../authorization/domain/entities/permission.en
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn({ type: 'bigint'})
   id: string;
 
   @Column({ type: 'varchar' })

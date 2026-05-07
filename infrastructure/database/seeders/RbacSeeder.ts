@@ -1,11 +1,11 @@
 import { Seeder } from 'typeorm-extension';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Role } from '../../../src/modules/authorization/domain/entities/role.entity';
 import { Permission } from '../../../src/modules/authorization/domain/entities/permission.entity';
 import { Permission as PermissionEnum } from '../../../src/modules/authorization/domain/Enums/permissions';
 
 export default class RbacSeeder implements Seeder {
-  public async run(dataSource: DataSource): Promise<void> {
+  public async run(dataSource: DataSource | EntityManager): Promise<void> {
     console.log('Seeding RBAC (Roles and Permissions)...');
 
     const permissionRepository = dataSource.getRepository(Permission);
