@@ -1,7 +1,7 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource, Repository } from 'typeorm';
-import RbacSeeder from './rbac.seed';
-import UserSeeder from './user.seed';
+import RbacSeeder from '@database/seeders/rbac.seed';
+import UserSeeder from '@database/seeders/user.seed';
 import { Migration } from '@modules/MigrationSeeders/domain/Entities/migration.entity';
 import { DateTime } from '@config/timezone.config';
 
