@@ -20,6 +20,12 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@modules/*": ["src/modules/*"],
+      "@database/*": ["infrastructure/database/*"],
+      "@config/*": ["infrastructure/config/*"],
+      "@Helpers/*": ["infrastructure/helpers/*"]
+    }
   }
 }

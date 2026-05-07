@@ -2,10 +2,10 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
 import { join } from 'path';
 import { SnakeNamingStrategy } from './snake-naming.strategy';
-import { User } from '../../src/modules/users/domain/entities/user.entity';
-import { Role } from '../../src/modules/authorization/domain/entities/role.entity';
-import { Permission } from '../../src/modules/authorization/domain/entities/permission.entity';
-import { Migration } from '../../src/modules/MigrationSeeders/domain/Entities/migration.entity';
+import { User } from '@modules/users/domain/entities/user.entity';
+import { Role } from '@modules/authorization/domain/entities/role.entity';
+import { Permission } from '@modules/authorization/domain/entities/permission.entity';
+import { Migration } from '@modules/MigrationSeeders/domain/Entities/migration.entity';
 
 config();
 

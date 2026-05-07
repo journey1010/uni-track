@@ -1,5 +1,5 @@
-import { AppDataSource } from '../data-source';
-import MainSeeder from './main.seed';
+import { AppDataSource } from '@database/data-source';
+import MainSeeder from '@database/seeders/main.seed';
 
 async function main() {
   await AppDataSource.initialize();

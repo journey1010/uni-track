@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import * as argon2 from 'argon2';
-import { hashingConfig } from '../config/hashing.config';
+import { hashingConfig } from '@config/hashing.config';
 
 export class Hash {
   static async make(value: string): Promise<string> {

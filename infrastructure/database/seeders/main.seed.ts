@@ -2,8 +2,8 @@ import { Seeder } from 'typeorm-extension';
 import { DataSource, Repository } from 'typeorm';
 import RbacSeeder from './rbac.seed';
 import UserSeeder from './user.seed';
-import { Migration } from '../../../src/modules/MigrationSeeders/domain/Entities/migration.entity';
-import { DateTime } from '../../config/timezone.config';
+import { Migration } from '@modules/MigrationSeeders/domain/Entities/migration.entity';
+import { DateTime } from '@config/timezone.config';
 
 export default class MainSeeder implements Seeder {
   public async run(dataSource: DataSource): Promise<void> {

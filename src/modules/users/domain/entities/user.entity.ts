@@ -7,8 +7,8 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
-import { Role } from '../../../authorization/domain/entities/role.entity';
-import { Permission } from '../../../authorization/domain/entities/permission.entity';
+import { Role } from '@modules/authorization/domain/entities/role.entity';
+import { Permission } from '@modules/authorization/domain/entities/permission.entity';
 
 @Entity('users')
 export class User {

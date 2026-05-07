@@ -1,11 +1,11 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource, EntityManager } from 'typeorm';
-import { User } from '../../../src/modules/users/domain/entities/user.entity';
-import { Role } from '../../../src/modules/authorization/domain/entities/role.entity';
-import { Permission } from '../../../src/modules/authorization/domain/entities/permission.entity';
-import { UserStatus } from '../../../src/modules/users/domain/Enums/user.status';
-import { DateTime } from '../../config/timezone.config';
-import { Hash } from '../../helpers/Hash';
+import { User } from '@modules/users/domain/entities/user.entity';
+import { Role } from '@modules/authorization/domain/entities/role.entity';
+import { Permission } from '@modules/authorization/domain/entities/permission.entity';
+import { UserStatus } from '@modules/users/domain/Enums/user.status';
+import { DateTime } from '@config/timezone.config';
+import { Hash } from '@Helpers/Hash';
 
 export default class UserSeeder implements Seeder {
   public async run(dataSource: DataSource | EntityManager): Promise<void> {
