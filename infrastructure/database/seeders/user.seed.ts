@@ -5,7 +5,7 @@ import { Role } from '../../../src/modules/authorization/domain/entities/role.en
 import { Permission } from '../../../src/modules/authorization/domain/entities/permission.entity';
 import { UserStatus } from '../../../src/modules/users/domain/Enums/user.status';
 import { DateTime } from '../../config/timezone.config';
-import { Hash } from '../../../infrastructure/helpers/Hash';
+import { Hash } from '../../helpers/Hash';
 
 export default class UserSeeder implements Seeder {
   public async run(dataSource: DataSource | EntityManager): Promise<void> {
@@ -15,8 +15,12 @@ export default class UserSeeder implements Seeder {
     const roleRepository = dataSource.getRepository(Role);
     const permissionRepository = dataSource.getRepository(Permission);
 
-    const eldenLordRole = await roleRepository.findOne({ where: { name: 'elden_lord' } });
-    const eldenLordPermission = await permissionRepository.findOne({ where: { name: '*' } });
+    const eldenLordRole = await roleRepository.findOne({
+      where: { name: 'elden_lord' },
+    });
+    const eldenLordPermission = await permissionRepository.findOne({
+      where: { name: '*' },
+    });
 
     const userData = {
       name: 'System',

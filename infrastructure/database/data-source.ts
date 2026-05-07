@@ -1,7 +1,6 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
 import { join } from 'path';
-import { SeederOptions } from 'typeorm-extension';
 import { SnakeNamingStrategy } from './snake-naming.strategy';
 import { User } from '../../src/modules/users/domain/entities/user.entity';
 import { Role } from '../../src/modules/authorization/domain/entities/role.entity';
@@ -10,7 +9,7 @@ import { Migration } from '../../src/modules/MigrationSeeders/domain/Entities/mi
 
 config();
 
-const options: DataSourceOptions & SeederOptions = {
+const options: DataSourceOptions = {
   type: (process.env.DB_CONNECTION as 'postgres') || 'postgres',
   host: process.env.DB_HOST || '127.0.0.1',
   port: parseInt(process.env.DB_PORT || '5432', 10),
@@ -20,8 +19,6 @@ const options: DataSourceOptions & SeederOptions = {
   schema: process.env.DB_SCHEMA || 'public',
   entities: [User, Role, Permission, Migration],
   migrations: [join(process.cwd(), 'infrastructure/database/migrations/*{.ts,.js}')],
-  seeds: [join(process.cwd(), 'infrastructure/database/seeders/MainSeeder.ts')],
-  factories: [join(process.cwd(), 'infrastructure/database/factories/**/*{.ts,.js}')],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: process.env.APP_ENV === 'production' ? false : true,
 };

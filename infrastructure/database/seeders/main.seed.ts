@@ -1,7 +1,7 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource, Repository } from 'typeorm';
-import RbacSeeder from './RbacSeeder';
-import UserSeeder from './UserSeeder';
+import RbacSeeder from './rbac.seed';
+import UserSeeder from './user.seed';
 import { Migration } from '../../../src/modules/MigrationSeeders/domain/Entities/migration.entity';
 import { DateTime } from '../../config/timezone.config';
 
@@ -16,7 +16,10 @@ export default class MainSeeder implements Seeder {
       ];
 
       for (const seeder of seeders) {
-        const alreadyExecuted = await this.exists(seeder.name, migrationRepository);
+        const alreadyExecuted = await this.exists(
+          seeder.name,
+          migrationRepository,
+        );
 
         if (!alreadyExecuted) {
           console.log(`Running seeder: ${seeder.name}`);
@@ -36,7 +39,10 @@ export default class MainSeeder implements Seeder {
     });
   }
 
-  private async exists(name: string, repository: Repository<Migration>): Promise<boolean> {
+  private async exists(
+    name: string,
+    repository: Repository<Migration>,
+  ): Promise<boolean> {
     return await repository.existsBy({ name: name });
   }
 }
