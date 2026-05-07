@@ -10,7 +10,7 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
-      - ./container:/var/lib/postgresql/data:z
+      - ./container:/var/lib/postgresql:z
 
 networks:
   default:
