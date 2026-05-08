@@ -42,6 +42,9 @@ export class User {
   @Column({ type: 'smallint' }) 
   level: number;
 
+  @Column({ type: 'integer', default: 0 })
+  token_version: number;
+
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
 
