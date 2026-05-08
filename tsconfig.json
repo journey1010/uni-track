@@ -25,7 +25,8 @@
       "@modules/*": ["src/modules/*"],
       "@database/*": ["infrastructure/database/*"],
       "@config/*": ["infrastructure/config/*"],
-      "@Helpers/*": ["infrastructure/helpers/*"]
+      "@Helpers/*": ["infrastructure/helpers/*"],
+      "@Exceptions/*": ["infrastructure/exceptions/*"]
     }
   }
 }

@@ -1,0 +1,33 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
+import { User } from '@modules/users/domain/entities/user.entity';
+import { UserSession } from '@modules/users/domain/entities/user.session.entity';
+import { Permission } from '@modules/authorization/domain/entities/permission.entity';
+import { Role } from '@modules/authorization/domain/entities/role.entity';
+
+import { AuthController } from './infrastructure/controllers/auth.controller';
+import { LoginUserCase } from './application/login-user.case';
+import { RefreshTokenCase } from './application/refresh-token.case';
+import { SessionCleanupTask } from './application/session-cleanup.task';
+
+@Module({
+    imports: [
+        TypeOrmModule.forFeature([User, UserSession, Permission, Role]),
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                secret: configService.get<string>('jwt.secret'),
+                signOptions: {
+                    expiresIn: configService.get<number>('jwt.accessTtl', 3600),
+                },
+            }),
+            inject: [ConfigService],
+        }),
+    ],
+    controllers: [AuthController],
+    providers: [LoginUserCase, RefreshTokenCase, SessionCleanupTask],
+})
+export class AuthModule {}
