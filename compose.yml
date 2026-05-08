@@ -10,7 +10,17 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
-      - ./container:/var/lib/postgresql:z
+      - ./container/pg:/var/lib/postgresql:z
+
+  redis:
+    image: docker.io/redis:7.4-alpine
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - ./container/redis:/data:z
 
 networks:
   default:
