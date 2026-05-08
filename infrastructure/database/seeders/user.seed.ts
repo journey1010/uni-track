@@ -3,7 +3,7 @@ import { DataSource, EntityManager } from 'typeorm';
 import { User } from '@modules/users/domain/entities/user.entity';
 import { Role } from '@modules/authorization/domain/entities/role.entity';
 import { Permission } from '@modules/authorization/domain/entities/permission.entity';
-import { UserStatus } from '@modules/users/domain/Enums/user.status';
+import { UserStatus } from '@modules/users/domain/Enums/user.status.enum';
 import { DateTime } from '@config/timezone.config';
 import { Hash } from '@Helpers/Hash';
 

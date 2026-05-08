@@ -2,7 +2,7 @@ import { Seeder } from 'typeorm-extension';
 import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Role } from '@modules/authorization/domain/entities/role.entity';
 import { Permission } from '@modules/authorization/domain/entities/permission.entity';
-import { Permission as PermissionEnum } from '@modules/authorization/domain/Enums/permissions';
+import { Permission as PermissionEnum } from '@modules/authorization/domain/Enums/permissions.enum';
 
 export default class RbacSeeder implements Seeder {
   public async run(dataSource: DataSource | EntityManager): Promise<void> {
