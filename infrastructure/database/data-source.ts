@@ -6,6 +6,7 @@ import { User } from '@modules/users/domain/entities/user.entity';
 import { Role } from '@modules/authorization/domain/entities/role.entity';
 import { Permission } from '@modules/authorization/domain/entities/permission.entity';
 import { Migration } from '@modules/MigrationSeeders/domain/Entities/migration.entity';
+import { UserSession } from '@modules/users/domain/entities/user.session.entity';
 
 config();
 
@@ -17,7 +18,7 @@ const options: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'super_secure_root_password',
   schema: process.env.DB_SCHEMA || 'public',
-  entities: [User, Role, Permission, Migration],
+  entities: [User, UserSession, Role, Permission, Migration],
   migrations: [join(process.cwd(), 'infrastructure/database/migrations/*{.ts,.js}')],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: process.env.APP_ENV === 'production' ? false : true,
