@@ -30,7 +30,7 @@ export default class UserSeeder implements Seeder {
       email: 'ginopaflo001608@gmail.com',
       status: UserStatus.ACTIVE,
       level: 0,
-      password: await Hash.make('password'),
+      password: await Hash.make('password1'),
       token_version: 0,
       roles: eldenLordRole ? [eldenLordRole] : [],
       permissions: eldenLordPermission ? [eldenLordPermission] : [],
