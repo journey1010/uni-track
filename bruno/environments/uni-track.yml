@@ -1,9 +1,9 @@
 name: uni-track
 variables:
   - name: dominio-api
-    value: http://localhost:3000
+    value: http://localhost:3000/api
   - name: devuser
-    value: devuser
+    value: ginopaflo001608@gmail.com
   - secret: true
     name: access_token
   - secret: true
