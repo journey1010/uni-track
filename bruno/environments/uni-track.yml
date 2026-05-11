@@ -1,0 +1,6 @@
+name: uni-track
+variables:
+  - name: dominio-api
+    value: http://localhost:3000
+  - name: devuser
+    value: devuser
