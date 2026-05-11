@@ -4,3 +4,9 @@ variables:
     value: http://localhost:3000
   - name: devuser
     value: devuser
+  - secret: true
+    name: access_token
+  - secret: true
+    name: token_refress
+  - secret: true
+    name: password
