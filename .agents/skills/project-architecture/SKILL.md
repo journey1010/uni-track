@@ -1,7 +1,15 @@
-# Skill: Project Architecture
+---
+name: project-architecture
+description: Provides an overview of the repository's hexagonal and modular architecture. Use when adding new modules, entities, or understanding the project structure.
+---
 
-## Overview
+# Project Architecture Skill
+
 This project follows a **Hexagonal and Modular Architecture** with a pragmatic approach. It prioritizes development speed and scalability while maintaining a clear separation of concerns.
+
+## When to use this skill
+- Use this when creating new modules or services.
+- Use this to ensure adherence to the project's directory structure and pragmatic principles.
 
 ## Directory Structure
 
@@ -37,6 +45,3 @@ Each module must follow this internal structure:
 - Use **Yarn** for package management.
 - Ensure all new entities are added to the corresponding `domain/entities` directory.
 - Maintain consistency with the Laravel-style configuration for environment variables.
-
-## Package Management
-- Use **Yarn** for package management.
