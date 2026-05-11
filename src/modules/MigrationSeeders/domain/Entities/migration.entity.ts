@@ -10,6 +10,6 @@ export class Migration {
     @Column({ type: "varchar"})
     name: string;
     
-    @Column({ type: "timestamp"})
-    created_at: Date
+    @Column({ type: "timestamp", name: 'created_at' })
+    createdAt: Date
 }

@@ -8,10 +8,10 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import * as express from 'express';
-import { LoginDto } from '../../infrastructure/validation/login.dto';
-import { RefreshDto } from '../../infrastructure/validation/refresh.dto';
-import { LoginUserCase } from '../../application/login-user.case';
-import { RefreshTokenCase } from '../../application/refresh-token.case';
+import { LoginDto } from '@modules/auth/infrastructure/validation/login.dto';
+import { RefreshDto } from '@modules/auth/infrastructure/validation/refresh.dto';
+import { LoginUserCase } from '@modules/auth/application/login-user.case';
+import { RefreshTokenCase } from '@modules/auth/application/refresh-token.case';
 
 @Controller('auth')
 export class AuthController {

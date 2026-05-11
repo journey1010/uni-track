@@ -1,6 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,9 +8,11 @@ import { UserSession } from '@modules/users/domain/entities/user.session.entity'
 import { UserStatus } from '@modules/users/domain/Enums/user.status.enum';
 import { Permission } from '@modules/authorization/domain/entities/permission.entity';
 import { Hash } from '@Helpers/Hash';
-import { Result } from '../../../common/results';
+import { Result } from '@Common/results';
 import { LoginResponseDto } from './dto/login-response.dto';
-import { LoginDto } from '../infrastructure/validation/login.dto';
+import { LoginDto } from '@modules/auth/infrastructure/validation/login.dto';
+import { UserRepository } from '@modules/users/domain/repositories/user.repository';
+import { UserSessionRepository } from '@modules/users/domain/repositories/user-session.repository';
 
 interface SessionMeta {
     ip: string;
@@ -22,32 +22,22 @@ interface SessionMeta {
 @Injectable()
 export class LoginUserCase {
     constructor(
-        @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
-        @InjectRepository(UserSession)
-        private readonly sessionRepository: Repository<UserSession>,
+        private readonly userRepository: UserRepository,
+        private readonly sessionRepository: UserSessionRepository,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
     ) {}
 
-    async execute(
-        dto: LoginDto,
-        meta: SessionMeta,
-    ): Promise<Result<LoginResponseDto, string>> {
-        // 1. Find user by email with roles->permissions and direct permissions
-        const user = await this.userRepository.findOne({
-            where: { email: dto.email },
-            relations: ['roles', 'roles.permissions', 'permissions'],
-        });
+    public async execute(dto: LoginDto, meta: SessionMeta): Promise<Result<LoginResponseDto, string>> {
+        const user = await this.userRepository.findByEmail(dto.email);
 
         if (!user || user.status !== UserStatus.ACTIVE) {
-            return Result.failure('Invalid credentials or inactive account');
+            return Result.failure('Credenciales invalidas o cuenta inactiva');
         }
 
-        // 2. Verify password
         const passwordValid = await Hash.check(dto.password, user.password);
         if (!passwordValid) {
-            return Result.failure('Invalid credentials or inactive account');
+            return Result.failure('Credenciales invalidas o cuenta inactiva');
         }
 
         // 3. Unify permissions (no duplicates)
@@ -56,13 +46,17 @@ export class LoginUserCase {
         // 4. Generate tokens
         const accessJti = uuidv4();
         const refreshJti = uuidv4();
-        const audience = this.configService.get<string>('jwt.audience', 'local');
-        const accessTtl = this.configService.get<number>('jwt.accessTtl', 3600);
-        const refreshTtl = this.configService.get<number>('jwt.refreshTtl', 604800);
-
-        const permissionCodes = unifiedPermissions.map((p) =>
-            String(p.code),
+        const audience = this.configService.get<string>(
+            'jwt.audience',
+            'local',
         );
+        const accessTtl = this.configService.get<number>('jwt.accessTtl', 3600);
+        const refreshTtl = this.configService.get<number>(
+            'jwt.refreshTtl',
+            604800,
+        );
+
+        const permissionCodes = unifiedPermissions.map((p) => String(p.code));
 
         const accessToken = this.jwtService.sign(
             {
@@ -110,7 +104,7 @@ export class LoginUserCase {
             last_used_at: now,
         });
 
-        await this.sessionRepository.save([accessSession, refreshSession]);
+        await this.sessionRepository.saveMany([accessSession, refreshSession]);
 
         // 6. Build response with permission.name
         const permissionNames = unifiedPermissions.map((p) => p.name);
@@ -156,3 +150,4 @@ export class LoginUserCase {
         return Array.from(permissionMap.values());
     }
 }
+

@@ -12,6 +12,8 @@ import { AuthController } from './infrastructure/controllers/auth.controller';
 import { LoginUserCase } from './application/login-user.case';
 import { RefreshTokenCase } from './application/refresh-token.case';
 import { SessionCleanupTask } from './application/session-cleanup.task';
+import { UserRepository } from '@modules/users/domain/repositories/user.repository';
+import { UserSessionRepository } from '@modules/users/domain/repositories/user-session.repository';
 
 @Module({
     imports: [
@@ -28,6 +30,13 @@ import { SessionCleanupTask } from './application/session-cleanup.task';
         }),
     ],
     controllers: [AuthController],
-    providers: [LoginUserCase, RefreshTokenCase, SessionCleanupTask],
+    providers: [
+        LoginUserCase,
+        RefreshTokenCase,
+        SessionCleanupTask,
+        UserRepository,
+        UserSessionRepository,
+    ],
 })
 export class AuthModule {}
+

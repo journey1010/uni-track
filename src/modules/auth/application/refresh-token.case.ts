@@ -1,6 +1,4 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -11,7 +9,9 @@ import { User } from '@modules/users/domain/entities/user.entity';
 import { UserSession } from '@modules/users/domain/entities/user.session.entity';
 import { UserStatus } from '@modules/users/domain/Enums/user.status.enum';
 import { Permission } from '@modules/authorization/domain/entities/permission.entity';
-import { Result } from '../../../common/results';
+import { Result } from '@Common/results';
+import { UserRepository } from '@modules/users/domain/repositories/user.repository';
+import { UserSessionRepository } from '@modules/users/domain/repositories/user-session.repository';
 
 export interface RefreshResult {
     access_token: string;
@@ -60,15 +60,14 @@ export class RefreshTokenCase {
     private static readonly CACHE_PREFIX = 'auth:user:';
 
     constructor(
-        @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
-        @InjectRepository(UserSession)
-        private readonly sessionRepository: Repository<UserSession>,
+        private readonly userRepository: UserRepository,
+        private readonly sessionRepository: UserSessionRepository,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         @Inject(CACHE_MANAGER)
         private readonly cacheManager: cacheManager.Cache,
     ) {}
+
 
     async execute(
         refreshTokenStr: string,
@@ -87,13 +86,10 @@ export class RefreshTokenCase {
         }
 
         // 2. Validate session exists and not expired
-        const session = await this.sessionRepository.findOne({
-            where: {
-                jti: payload.jti,
-                type: 'refresh',
-                expires_at: MoreThan(new Date()),
-            },
-        });
+        const session = await this.sessionRepository.findActiveByJti(
+            payload.jti,
+            'refresh',
+        );
 
         if (!session) {
             return Result.failure('Session not found or expired');
@@ -110,9 +106,15 @@ export class RefreshTokenCase {
         }
 
         // 4. Generate new access token
-        const audience = this.configService.get<string>('jwt.audience', 'local');
+        const audience = this.configService.get<string>(
+            'jwt.audience',
+            'local',
+        );
         const accessTtl = this.configService.get<number>('jwt.accessTtl', 3600);
-        const refreshTtl = this.configService.get<number>('jwt.refreshTtl', 604800);
+        const refreshTtl = this.configService.get<number>(
+            'jwt.refreshTtl',
+            604800,
+        );
         const now = new Date();
         const accessJti = uuidv4();
 
@@ -161,7 +163,7 @@ export class RefreshTokenCase {
             );
 
             // Remove old refresh session
-            await this.sessionRepository.delete({ id: session.id });
+            await this.sessionRepository.deleteById(session.id);
 
             // Persist new refresh session
             const refreshSession = this.sessionRepository.create({
@@ -205,10 +207,7 @@ export class RefreshTokenCase {
         }
 
         // Fallback to DB
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
-            relations: ['roles', 'roles.permissions', 'permissions'],
-        });
+        const user = await this.userRepository.findByIdWithPermissions(userId);
 
         if (!user) {
             return null;
@@ -258,3 +257,4 @@ export class RefreshTokenCase {
         return cachedUser;
     }
 }
+

@@ -26,7 +26,8 @@
       "@database/*": ["infrastructure/database/*"],
       "@config/*": ["infrastructure/config/*"],
       "@Helpers/*": ["infrastructure/helpers/*"],
-      "@Exceptions/*": ["infrastructure/exceptions/*"]
+      "@Exceptions/*": ["infrastructure/exceptions/*"],
+      "@Common/*": ["src/common/*"]
     }
   }
 }
