@@ -21,6 +21,10 @@ export class UserRepository {
     });
   }
 
+  /**
+   * Unify direct permissions (permission_user) and role-based permissions
+   * (role_user → permission_role). Returns deduplicated list by permission.code.
+   */
   public async getUnifiedPermissions(userId: string | number): Promise<Array<{ name: string; code: string }>> {
     const directPermissions = this.repository.manager
         .createQueryBuilder()

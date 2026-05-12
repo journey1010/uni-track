@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, MoreThan, InsertResult } from 'typeorm';
 import { UserSession } from '../entities/user.session.entity';
 
 @Injectable()
@@ -14,22 +14,19 @@ export class UserSessionRepository {
         return this.repository.create(data);
     }
 
-    async save(session: UserSession): Promise<UserSession> {
-        return this.repository.save(session);
+    async save(session: UserSession): Promise<InsertResult> {
+        return this.repository.insert(session);
     }
 
-    async saveMany(sessions: UserSession[]): Promise<UserSession[]> {
-        return this.repository.save(sessions);
+    async saveMany(sessions: UserSession[]): Promise<InsertResult> {
+        return this.repository.insert(sessions);
     }
 
     async findByJti(jti: string): Promise<UserSession | null> {
         return this.repository.findOne({ where: { jti } });
     }
 
-    async findActiveByJti(
-        jti: string,
-        type: string,
-    ): Promise<UserSession | null> {
+    async findActiveByJti(jti: string, type: string): Promise<UserSession | null> {
         return this.repository.findOne({
             where: {
                 jti,

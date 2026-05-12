@@ -26,14 +26,14 @@ Each module must follow this internal structure:
 - **`application/`**: Use cases, DTOs, and application logic.
 - **`domain/`**: The core of the module.
     - **`entities/`**: TypeORM entities or plain domain models.
-    - **`repositories/`**: Repository interfaces (ports).
-    - **`services/`**: Domain services.
+    - **`repositories/`**: Concrete repository implementations.
+    - **`services/`**: Domain services (interfaces for infrastructure services).
     - **`rules/`**: Business rules/logic.
     - **`events/`**: Domain events.
 - **`infrastructure/`**: Implementation details (adapters).
     - **`controllers/`**: Web controllers (e.g., NestJS controllers).
     - **`validation/`**: Schemas or classes for request validation.
-    - **`persistence/`**: Concrete repository implementations (if separated from domain).
+    - **`services/`**: Infrastructure services (class concrete).
 
 ## Pragmatic Principles
 1. **Speed over Purism**: While the structure is defined, don't be strictly purist if it hinders development speed for simple features.

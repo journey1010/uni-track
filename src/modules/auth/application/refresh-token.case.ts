@@ -1,9 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import * as cacheManager from 'cache-manager';
-import { v4 as uuidv4 } from 'uuid';
 
 import { User } from '@modules/users/domain/entities/user.entity';
 import { UserSession } from '@modules/users/domain/entities/user.session.entity';
@@ -12,6 +9,11 @@ import { Permission } from '@modules/authorization/domain/entities/permission.en
 import { Result } from '@Common/results';
 import { UserRepository } from '@modules/users/domain/repositories/user.repository';
 import { UserSessionRepository } from '@modules/users/domain/repositories/user-session.repository';
+
+import { TokenService } from '@modules/auth/infrastructure/services/jwt.services';
+import { AccessTokenPayload, RefreshTokenPayload } from '@modules/auth/domain/services/jwt.interface';
+import { ConfigService } from '@nestjs/config';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface RefreshResult {
     access_token: string;
@@ -26,18 +28,6 @@ export interface RefreshResult {
 interface SessionMeta {
     ip: string;
     userAgent: string;
-}
-
-interface JwtPayload {
-    aud: string;
-    type: string;
-    sub: string;
-    jti: string;
-    exp: number;
-    iat: number;
-    vrs?: number;
-    level?: number;
-    permissions?: string[];
 }
 
 interface CachedUser {
@@ -62,7 +52,7 @@ export class RefreshTokenCase {
     constructor(
         private readonly userRepository: UserRepository,
         private readonly sessionRepository: UserSessionRepository,
-        private readonly jwtService: JwtService,
+        private readonly tokenService: TokenService,
         private readonly configService: ConfigService,
         @Inject(CACHE_MANAGER)
         private readonly cacheManager: cacheManager.Cache,
@@ -74,9 +64,9 @@ export class RefreshTokenCase {
         meta: SessionMeta,
     ): Promise<Result<RefreshResult, string>> {
         // 1. Decode and verify refresh token
-        let payload: JwtPayload;
+        let payload: RefreshTokenPayload;
         try {
-            payload = this.jwtService.verify<JwtPayload>(refreshTokenStr);
+            payload = await this.tokenService.verify<RefreshTokenPayload>(refreshTokenStr);
         } catch {
             return Result.failure('Invalid or expired refresh token');
         }
@@ -106,30 +96,23 @@ export class RefreshTokenCase {
         }
 
         // 4. Generate new access token
-        const audience = this.configService.get<string>(
-            'jwt.audience',
-            'local',
-        );
-        const accessTtl = this.configService.get<number>('jwt.accessTtl', 3600);
-        const refreshTtl = this.configService.get<number>(
-            'jwt.refreshTtl',
-            604800,
-        );
         const now = new Date();
-        const accessJti = uuidv4();
+        const audience = this.configService.get<string>('jwt.audience')!;
+        const accessTtl = this.configService.get<number>('jwt.accessTtl')!;
+        const refreshTtl = this.configService.get<number>('jwt.refreshTtl')!;
 
-        const accessToken = this.jwtService.sign(
-            {
-                aud: audience,
-                type: 'access',
-                sub: cachedUser.id,
-                jti: accessJti,
-                vrs: cachedUser.token_version,
-                level: cachedUser.level,
-                permissions: cachedUser.permissionCodes,
-            },
-            { expiresIn: accessTtl },
-        );
+        const accessJti = uuidv4();
+        const accessPayload: AccessTokenPayload = {
+            aud: audience,
+            type: 'access',
+            sub: cachedUser.id,
+            jti: accessJti,
+            vrs: cachedUser.token_version,
+            level: cachedUser.level,
+            permissions: cachedUser.permissionCodes,
+        };
+
+        const accessToken = await this.tokenService.generateAccessToken(accessPayload, accessTtl);
 
         // Persist access session
         const accessSession = this.sessionRepository.create({
@@ -151,16 +134,14 @@ export class RefreshTokenCase {
         if (timeUntilExpiry < RefreshTokenCase.ROTATION_THRESHOLD_MS) {
             // Rotate: delete old refresh session, create new one
             const refreshJti = uuidv4();
+            const refreshPayload: RefreshTokenPayload = {
+                aud: audience,
+                type: 'refresh',
+                sub: cachedUser.id,
+                jti: refreshJti,
+            };
 
-            newRefreshToken = this.jwtService.sign(
-                {
-                    aud: audience,
-                    type: 'refresh',
-                    sub: cachedUser.id,
-                    jti: refreshJti,
-                },
-                { expiresIn: refreshTtl },
-            );
+            newRefreshToken = await this.tokenService.generateRefreshToken(refreshPayload, refreshTtl);
 
             // Remove old refresh session
             await this.sessionRepository.deleteById(session.id);

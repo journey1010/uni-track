@@ -14,6 +14,7 @@ import { RefreshTokenCase } from './application/refresh-token.case';
 import { SessionCleanupTask } from './application/session-cleanup.task';
 import { UserRepository } from '@modules/users/domain/repositories/user.repository';
 import { UserSessionRepository } from '@modules/users/domain/repositories/user-session.repository';
+import { TokenService } from './infrastructure/services/jwt.services';
 
 @Module({
     imports: [
@@ -21,9 +22,9 @@ import { UserSessionRepository } from '@modules/users/domain/repositories/user-s
         JwtModule.registerAsync({
             imports: [ConfigModule],
             useFactory: (configService: ConfigService) => ({
-                secret: configService.get<string>('jwt.secret'),
+                secret: configService.get<string>('jwt.secret')!,
                 signOptions: {
-                    expiresIn: configService.get<number>('jwt.accessTtl', 3600),
+                    audience: configService.get<string>('jwt.audience')!
                 },
             }),
             inject: [ConfigService],
@@ -36,7 +37,9 @@ import { UserSessionRepository } from '@modules/users/domain/repositories/user-s
         SessionCleanupTask,
         UserRepository,
         UserSessionRepository,
+        TokenService,
     ],
+    exports: [TokenService],
 })
 export class AuthModule {}
 
