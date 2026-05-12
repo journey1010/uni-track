@@ -40,10 +40,8 @@ export class LoginUserCase {
             return Result.failure('Credenciales invalidas o cuenta inactiva');
         }
 
-        // 3. Unify permissions (no duplicates)
-        const unifiedPermissions = this.unifyPermissions(user);
+        const unifiedPermissions = await this.userRepository.getUnifiedPermissions(user.id);
 
-        // 4. Generate tokens
         const accessJti = uuidv4();
         const refreshJti = uuidv4();
         const audience = this.configService.get<string>(
