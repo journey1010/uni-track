@@ -5,9 +5,11 @@ import {
     Req,
     HttpCode,
     HttpStatus,
-    UnauthorizedException,
+    UnauthorizedException
 } from '@nestjs/common';
-import * as express from 'express';
+import {
+    SessionMeta
+} from '@modules/auth/infrastructure/decorators/session-meta.decorator';
 import { LoginDto } from '@modules/auth/infrastructure/validation/login.dto';
 import { RefreshDto } from '@modules/auth/infrastructure/validation/refresh.dto';
 import { LoginUserCase } from '@modules/auth/application/login-user.case';
@@ -22,35 +24,21 @@ export class AuthController {
 
     @Post('login')
     @HttpCode(HttpStatus.OK)
-    async login(@Body() dto: LoginDto, @Req() req: express.Request) {
-        const meta = {
-            ip: (req.headers['x-forwarded-for'] as string) || req.ip || 'unknown',
-            userAgent: req.headers['user-agent'] || 'unknown',
-        };
-
+    async login(@Body() dto: LoginDto, @SessionMeta() meta: SessionMeta) {
         const result = await this.loginUserCase.execute(dto, meta);
 
         if (!result.ok) {
             throw new UnauthorizedException(result.error);
         }
 
-        return {
-            statusCode: HttpStatus.OK,
-            message: 'Login successful',
-            data: result.value,
-        };
+        return result.value;
     }
 
     @Post('refresh')
     @HttpCode(HttpStatus.OK)
-    async refresh(@Body() dto: RefreshDto, @Req() req: express.Request) {
-        const meta = {
-            ip: (req.headers['x-forwarded-for'] as string) || req.ip || 'unknown',
-            userAgent: req.headers['user-agent'] || 'unknown',
-        };
-
+    async refresh(@SessionMeta() meta: SessionMeta) {
         const result = await this.refreshTokenCase.execute(
-            dto.refresh_token,
+            userId,
             meta,
         );
 
