@@ -16,6 +16,9 @@ import { UserRepository } from '@modules/users/domain/repositories/user.reposito
 import { UserSessionRepository } from '@modules/users/domain/repositories/user-session.repository';
 import { TokenService } from './infrastructure/services/jwt.services';
 
+import { UserCacheService } from '@modules/auth/domain/services/user-cache.interface';
+import { UserCacheServiceImpl } from './infrastructure/services/user-cache.services';
+
 @Module({
     imports: [
         TypeOrmModule.forFeature([User, UserSession, Permission, Role]),
@@ -38,8 +41,12 @@ import { TokenService } from './infrastructure/services/jwt.services';
         UserRepository,
         UserSessionRepository,
         TokenService,
+        {
+            provide: UserCacheService,
+            useClass: UserCacheServiceImpl,
+        },
     ],
-    exports: [TokenService],
+    exports: [TokenService, UserCacheService],
 })
 export class AuthModule {}
 

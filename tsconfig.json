@@ -27,6 +27,7 @@
       "@config/*": ["infrastructure/config/*"],
       "@Helpers/*": ["infrastructure/helpers/*"],
       "@Exceptions/*": ["infrastructure/exceptions/*"],
+      "@infrastructure/*": ["infrastructure/*"],
       "@Common/*": ["src/common/*"]
     }
   }

@@ -21,6 +21,17 @@ export class UserRepository {
     });
   }
 
+  public async findById(id: string): Promise<User | null >{
+    return this.repository.findOne({
+      where: { id },
+      select: [
+        'id', 'name', 'last_name',
+        'dni', 'phone', 'email', 'status',
+        'level', 'token_version', 
+      ],
+    });
+  }
+
   /**
    * Unify direct permissions (permission_user) and role-based permissions
    * (role_user → permission_role). Returns deduplicated list by permission.code.

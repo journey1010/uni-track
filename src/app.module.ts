@@ -10,6 +10,9 @@ import redisConfig from '@config/redis.config';
 import { DatabaseModule } from '@database/database.module';
 import { AuthModule } from '@modules/auth/auth.module';
 
+import { Keyv } from 'keyv';
+import KeyvRedis from '@keyv/redis';
+
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -21,19 +24,16 @@ import { AuthModule } from '@modules/auth/auth.module';
             isGlobal: true,
             imports: [ConfigModule],
             useFactory: (configService: ConfigService) => {
-                const redisHost = configService.get<string>('redis.host', '127.0.0.1');
-                const redisPort = configService.get<number>('redis.port', 6379);
+                const redisHost = configService.get<string>('redis.host')!;
+                const redisPort = configService.get<number>('redis.port')!;
 
                 return {
-                    store: 'memory',
-                    ttl: 300 * 1000,
-                    max: 1000,
-                    // To enable Redis, install and configure:
-                    // store: redisStore,
-                    // host: redisHost,
-                    // port: redisPort,
+                    store: new Keyv({
+                        store: new KeyvRedis(`redis://${redisHost}:${redisPort}`),
+                    }),
                 };
             },
+
             inject: [ConfigService],
         }),
         DatabaseModule,

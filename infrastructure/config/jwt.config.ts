@@ -5,4 +5,5 @@ export default registerAs('jwt', () => ({
     accessTtl: parseInt(process.env.JWT_ACCESS_TTL || '900', 10),
     refreshTtl: parseInt(process.env.JWT_REFRESH_TTL || '7200', 10),
     audience: process.env.APP_ENV || 'local',
+    jwtThreshold: parseInt(process.env.JWT_THRESHOLD || '86400', 10),
 }));

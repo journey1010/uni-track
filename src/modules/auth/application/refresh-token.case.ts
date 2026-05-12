@@ -1,92 +1,47 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import * as cacheManager from 'cache-manager';
-
-import { User } from '@modules/users/domain/entities/user.entity';
-import { UserSession } from '@modules/users/domain/entities/user.session.entity';
+import { Injectable } from '@nestjs/common';
+import { LoginResponseDto } from './dto/login-response.dto';
 import { UserStatus } from '@modules/users/domain/Enums/user.status.enum';
-import { Permission } from '@modules/authorization/domain/entities/permission.entity';
 import { Result } from '@Common/results';
 import { UserRepository } from '@modules/users/domain/repositories/user.repository';
 import { UserSessionRepository } from '@modules/users/domain/repositories/user-session.repository';
-
 import { TokenService } from '@modules/auth/infrastructure/services/jwt.services';
 import { AccessTokenPayload, RefreshTokenPayload } from '@modules/auth/domain/services/jwt.interface';
+import { SessionMeta } from '../infrastructure/decorators/session-meta.decorator';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
-
-export interface RefreshResult {
-    access_token: string;
-    refresh_token: string | null;
-    name: string;
-    last_name: string;
-    email: string;
-    phone: string;
-    permissions: string[];
-}
-
-interface SessionMeta {
-    ip: string;
-    userAgent: string;
-}
-
-interface CachedUser {
-    id: string;
-    name: string;
-    last_name: string;
-    email: string;
-    phone: string;
-    status: number;
-    level: number;
-    token_version: number;
-    permissionCodes: string[];
-    permissionNames: string[];
-}
+import { UserCache, UserCacheService, CACHE_USER_SERVICE } from '@modules/auth/domain/services/user-cache.interface';
+import { DateTime } from '@config/timezone.config';
 
 @Injectable()
 export class RefreshTokenCase {
-    private static readonly ROTATION_THRESHOLD_MS = 24 * 60 * 60 * 1000; // 24 hours
-    private static readonly CACHE_TTL_SECONDS = 300; // 5 minutes
-    private static readonly CACHE_PREFIX = 'auth:user:';
-
     constructor(
         private readonly userRepository: UserRepository,
         private readonly sessionRepository: UserSessionRepository,
         private readonly tokenService: TokenService,
         private readonly configService: ConfigService,
-        @Inject(CACHE_MANAGER)
-        private readonly cacheManager: cacheManager.Cache,
+        private readonly userCacheService: UserCacheService,
     ) {}
 
-
     async execute(
-        refreshTokenStr: string,
+        userId: string,
+        token:  string,
         meta: SessionMeta,
-    ): Promise<Result<RefreshResult, string>> {
-        // 1. Decode and verify refresh token
-        let payload: RefreshTokenPayload;
-        try {
-            payload = await this.tokenService.verify<RefreshTokenPayload>(refreshTokenStr);
-        } catch {
-            return Result.failure('Invalid or expired refresh token');
+    ): Promise<Result<LoginResponseDto, string>> {
+
+        const cacheKey = CACHE_USER_SERVICE + userId; 
+        const cachedUser = await this.userCacheService.getUserById(userId);
+        
+        if (!cachedUser) {
+            return Result.failure('User not found');
         }
+         
+        const session = await this.userRepository.findById(userId);
 
-        if (payload.type !== 'refresh') {
-            return Result.failure('Token is not a refresh token');
-        }
-
-        // 2. Validate session exists and not expired
-        const session = await this.sessionRepository.findActiveByJti(
-            payload.jti,
-            'refresh',
-        );
-
-        if (!session) {
+        if (!session || session.status != UserStatus.ACTIVE) {
             return Result.failure('Session not found or expired');
         }
 
-        // 3. Get user data (from cache or DB), verify active status
-        const cachedUser = await this.getCachedUser(payload.sub);
+        const cachedUser = await this.getOrCacheUser(payload.sub);
         if (!cachedUser) {
             return Result.failure('User not found');
         }
@@ -96,10 +51,10 @@ export class RefreshTokenCase {
         }
 
         // 4. Generate new access token
-        const now = new Date();
         const audience = this.configService.get<string>('jwt.audience')!;
         const accessTtl = this.configService.get<number>('jwt.accessTtl')!;
         const refreshTtl = this.configService.get<number>('jwt.refreshTtl')!;
+        const jwtThreshold = this.configService.get<number>('jwt.jwtThreshold')!;
 
         const accessJti = uuidv4();
         const accessPayload: AccessTokenPayload = {
@@ -120,18 +75,18 @@ export class RefreshTokenCase {
             jti: accessJti,
             user_agent: meta.userAgent,
             ip_address: meta.ip,
-            expires_at: new Date(now.getTime() + accessTtl * 1000),
+            expires_at: DateTime.now().plus({ hours: accessTtl }).toJSDate(),
             type: 'access',
-            last_used_at: now,
+            last_used_at: DateTime.now().toJSDate(),
         });
         await this.sessionRepository.save(accessSession);
 
-        // 5. Rotation logic: if refresh expires in less than 24h, rotate it
-        const expiresAt = session.expires_at.getTime();
-        const timeUntilExpiry = expiresAt - now.getTime();
+        // 5. Rotation logic: if refresh expires in less than threshold, rotate it
+        const now = DateTime.now().toSeconds();
+        const timeUntilExpiry = payload.exp - now;
         let newRefreshToken: string | null = null;
 
-        if (timeUntilExpiry < RefreshTokenCase.ROTATION_THRESHOLD_MS) {
+        if (timeUntilExpiry < jwtThreshold) {
             // Rotate: delete old refresh session, create new one
             const refreshJti = uuidv4();
             const refreshPayload: RefreshTokenPayload = {
@@ -152,37 +107,34 @@ export class RefreshTokenCase {
                 jti: refreshJti,
                 user_agent: meta.userAgent,
                 ip_address: meta.ip,
-                expires_at: new Date(now.getTime() + refreshTtl * 1000),
+                expires_at: DateTime.now().plus({ hours: refreshTtl }).toJSDate(),
                 type: 'refresh',
-                last_used_at: now,
+                last_used_at: DateTime.now().toJSDate(),
             });
             await this.sessionRepository.save(refreshSession);
         } else {
             // Update last_used_at on existing refresh session
-            session.last_used_at = now;
+            session.last_used_at = DateTime.now().toJSDate();
             await this.sessionRepository.save(session);
         }
 
         return Result.success({
-            access_token: accessToken,
-            refresh_token: newRefreshToken,
             name: cachedUser.name,
             last_name: cachedUser.last_name,
             email: cachedUser.email,
             phone: cachedUser.phone,
             permissions: cachedUser.permissionNames,
+            access_token: accessToken,
+            refresh_token: newRefreshToken,
         });
     }
 
     /**
-     * Get user data from Redis cache or fallback to DB.
-     * Caches for 5 minutes to accelerate refresh validations.
+     * Get user data from UserCacheService or fallback to DB.
      */
-    private async getCachedUser(userId: string): Promise<CachedUser | null> {
-        const cacheKey = `${RefreshTokenCase.CACHE_PREFIX}${userId}`;
-
+    private async getOrCacheUser(userId: string): Promise<UserCache | null> {
         // Try cache first
-        const cached = await this.cacheManager.get<CachedUser>(cacheKey);
+        const cached = await this.userCacheService.getUserById(userId);
         if (cached) {
             return cached;
         }
@@ -195,27 +147,17 @@ export class RefreshTokenCase {
         }
 
         // Unify permissions
-        const permissionMap = new Map<number, Permission>();
+        const unifiedPermissions = await this.userRepository.getUnifiedPermissions(user.id);
+        
+        const permissionNames: string[] = [];
+        const permissionCodes: string[] = [];
 
-        if (user.permissions) {
-            for (const perm of user.permissions) {
-                permissionMap.set(perm.code, perm);
-            }
-        }
+        unifiedPermissions.forEach((p) => {
+            permissionCodes.push(p.code);
+            permissionNames.push(p.name);
+        });
 
-        if (user.roles) {
-            for (const role of user.roles) {
-                if (role.permissions) {
-                    for (const perm of role.permissions) {
-                        permissionMap.set(perm.code, perm);
-                    }
-                }
-            }
-        }
-
-        const permissions = Array.from(permissionMap.values());
-
-        const cachedUser: CachedUser = {
+        const userCache: UserCache = {
             id: user.id,
             name: user.name,
             last_name: user.last_name,
@@ -224,18 +166,13 @@ export class RefreshTokenCase {
             status: user.status,
             level: user.level,
             token_version: user.token_version,
-            permissionCodes: permissions.map((p) => String(p.code)),
-            permissionNames: permissions.map((p) => p.name),
+            permissionCodes,
+            permissionNames,
         };
 
-        // Cache for 5 minutes (TTL in milliseconds for cache-manager v5+)
-        await this.cacheManager.set(
-            cacheKey,
-            cachedUser,
-            RefreshTokenCase.CACHE_TTL_SECONDS * 1000,
-        );
+        await this.userCacheService.setUser(userCache);
 
-        return cachedUser;
+        return userCache;
     }
 }
 

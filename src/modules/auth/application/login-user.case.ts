@@ -11,11 +11,7 @@ import { TokenService } from '@modules/auth/infrastructure/services/jwt.services
 import { AccessTokenPayload, RefreshTokenPayload } from '@modules/auth/domain/services/jwt.interface';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
-
-interface SessionMeta {
-    ip: string;
-    userAgent: string;
-}
+import { SessionMeta } from '../infrastructure/decorators/session-meta.decorator';
 
 @Injectable()
 export class LoginUserCase {
