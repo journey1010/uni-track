@@ -1,5 +1,6 @@
 import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from '@Exceptions/global-exception.filter';
@@ -10,6 +11,8 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
 
     app.setGlobalPrefix('api');
+
+    app.use(cookieParser());
 
     app.useGlobalPipes(
         new ValidationPipe({

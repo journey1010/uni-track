@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { User } from '@modules/users/domain/entities/user.entity';
@@ -18,10 +19,15 @@ import { TokenService } from './infrastructure/services/jwt.services';
 
 import { UserCacheService } from '@modules/auth/domain/services/user-cache.interface';
 import { UserCacheServiceImpl } from './infrastructure/services/user-cache.services';
+import { AccessTokenStrategy } from './infrastructure/guards/strategies/access-token.strategy';
+import { RefreshTokenStrategy } from './infrastructure/guards/strategies/refresh-token.strategy';
+import { AccessTokenGuard } from './infrastructure/guards/access-token.guard';
+import { RefreshTokenGuard } from './infrastructure/guards/refresh-token.guard';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([User, UserSession, Permission, Role]),
+        PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.registerAsync({
             imports: [ConfigModule],
             useFactory: (configService: ConfigService) => ({
@@ -45,6 +51,10 @@ import { UserCacheServiceImpl } from './infrastructure/services/user-cache.servi
             provide: UserCacheService,
             useClass: UserCacheServiceImpl,
         },
+        AccessTokenStrategy,
+        RefreshTokenStrategy,
+        AccessTokenGuard,
+        RefreshTokenGuard,
     ],
     exports: [TokenService, UserCacheService],
 })
