@@ -5,7 +5,7 @@ export type AccessTokenPayload = {
     jti: string;
     vrs: number;
     level: number;
-    permissions: string[];
+    permissions: number[];
 }
 
 export type RefreshTokenPayload = {

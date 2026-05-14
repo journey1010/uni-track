@@ -37,7 +37,7 @@ export class LoginUserCase {
         const unifiedPermissions = await this.userRepository.getUnifiedPermissions(user.id);
         
         const permissionNames: string[] = [];
-        const permissionCodes: string[] = [];
+        const permissionCodes: number[] = [];
 
         unifiedPermissions.forEach((p) => {
             permissionCodes.push(p.code);

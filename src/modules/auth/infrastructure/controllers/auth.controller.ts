@@ -2,16 +2,15 @@ import {
     Controller,
     Post,
     Body,
-    Req,
     HttpCode,
     HttpStatus,
-    UnauthorizedException
+    UnauthorizedException,
+    Res,
+    Headers, 
+    Response
 } from '@nestjs/common';
-import {
-    SessionMeta
-} from '@modules/auth/infrastructure/decorators/session-meta.decorator';
+import { SessionMeta } from '@modules/auth/infrastructure/decorators/session-meta.decorator';
 import { LoginDto } from '@modules/auth/infrastructure/validation/login.dto';
-import { RefreshDto } from '@modules/auth/infrastructure/validation/refresh.dto';
 import { LoginUserCase } from '@modules/auth/application/login-user.case';
 import { RefreshTokenCase } from '@modules/auth/application/refresh-token.case';
 
@@ -24,11 +23,25 @@ export class AuthController {
 
     @Post('login')
     @HttpCode(HttpStatus.OK)
-    async login(@Body() dto: LoginDto, @SessionMeta() meta: SessionMeta) {
+    async login(
+        @Body() dto: LoginDto, 
+        @SessionMeta() meta: SessionMeta, 
+        @Res() res: Response,
+        @Headers('x-client-platform') platform: string
+    ) {
         const result = await this.loginUserCase.execute(dto, meta);
 
         if (!result.ok) {
             throw new UnauthorizedException(result.error);
+        }
+        
+        if(platform !== 'mobile'){
+            res.cookie('refresh_token', result.value.refresh_token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+                maxAge: 1000 * 60 * 60 * 24 * 7,
+            });
         }
 
         return result.value;
