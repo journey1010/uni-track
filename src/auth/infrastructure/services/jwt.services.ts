@@ -36,4 +36,9 @@ export class TokenService implements IJwtService {
     async verify<T extends object>(token: string): Promise<T> {
         return this.jwtService.verify<T>(token);
     }
+
+    async needTokenRotatio(tokenTtl: number): Promise<boolean> {
+        const refreshTtl = this.configService.get<number>('jwt.refreshTtl')!;
+
+    }
 }

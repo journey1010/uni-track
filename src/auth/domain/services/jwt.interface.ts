@@ -1,3 +1,4 @@
+
 export type AccessTokenPayload = {
     aud: string;
     type: 'access';
@@ -8,12 +9,20 @@ export type AccessTokenPayload = {
     permissions: number[];
 }
 
+export type TokenPayloadExtend = {
+    iat: number;
+    exp: number;
+}
+
 export type RefreshTokenPayload = {
     aud: string;
     type: 'refresh';
     sub: string;
     jti: string;
 }
+
+export type AccessPayloadExtend = AccessTokenPayload & TokenPayloadExtend;
+export type RefreshPayloadExtend = RefreshTokenPayload & TokenPayloadExtend;
 
 export interface IJwtService {
     generateAuthTokens(
