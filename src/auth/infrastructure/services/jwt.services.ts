@@ -37,8 +37,8 @@ export class TokenService implements IJwtService {
         return this.jwtService.verify<T>(token);
     }
 
-    async needTokenRotatio(tokenTtl: number): Promise<boolean> {
+    async needTokenRotati(tokenTtl: number): Promise<boolean> {
         const refreshTtl = this.configService.get<number>('jwt.refreshThreshold')!;
-
+        return tokenTtl < refreshTtl;
     }
 }
