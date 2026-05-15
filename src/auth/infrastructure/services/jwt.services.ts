@@ -10,7 +10,7 @@ export class TokenService implements IJwtService {
         private readonly configService: ConfigService,
     ) {}
 
-    public async generateAuthTokens(
+    async generateAuthTokens(
         accessPayload: AccessTokenPayload, 
         refreshPayload: RefreshTokenPayload
     ): Promise<{ access: string; refresh: string }> {
@@ -25,15 +25,15 @@ export class TokenService implements IJwtService {
         return { access, refresh };
     }
 
-    public async generateAccessToken(payload: AccessTokenPayload, expiresIn: number): Promise<string> {
+    async generateAccessToken(payload: AccessTokenPayload, expiresIn: number): Promise<string> {
         return this.jwtService.signAsync(payload, { expiresIn });
     }
 
-    public async generateRefreshToken(payload: RefreshTokenPayload, expiresIn: number): Promise<string> {
+    async generateRefreshToken(payload: RefreshTokenPayload, expiresIn: number): Promise<string> {
         return this.jwtService.signAsync(payload, { expiresIn });
     }
 
-    public async verify<T extends object>(token: string): Promise<T> {
+    async verify<T extends object>(token: string): Promise<T> {
         return this.jwtService.verify<T>(token);
     }
 }

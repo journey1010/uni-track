@@ -22,7 +22,7 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@modules/*": ["src/modules/*"],
+      "@modules/*": ["src/*"],
       "@database/*": ["infrastructure/database/*"],
       "@config/*": ["infrastructure/config/*"],
       "@Helpers/*": ["infrastructure/helpers/*"],

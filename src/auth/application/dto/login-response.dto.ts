@@ -5,5 +5,5 @@ export interface LoginResponseDto {
     phone: string;
     permissions: string[];
     access_token: string;
-    refresh_token: string;
+    refresh_token?: string;
 }

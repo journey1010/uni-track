@@ -23,31 +23,24 @@ export class RefreshTokenCase {
     ) {}
 
     async execute(
-        userId: string,
-        token:  string,
+        payload: RefreshTokenPayload & { exp: number },
         meta: SessionMeta,
     ): Promise<Result<LoginResponseDto, string>> {
-
-        const cacheKey = CACHE_USER_SERVICE + userId; 
-        const cachedUser = await this.userCacheService.getUserById(userId);
+        const userId = payload.sub;
+        const cachedUser = await this.getOrCacheUser(userId);
         
-        if (!cachedUser) {
-            return Result.failure('User not found');
-        }
-         
-        const session = await this.userRepository.findById(userId);
-
-        if (!session || session.status != UserStatus.ACTIVE) {
-            return Result.failure('Session not found or expired');
-        }
-
-        const cachedUser = await this.getOrCacheUser(payload.sub);
         if (!cachedUser) {
             return Result.failure('User not found');
         }
 
         if (cachedUser.status !== UserStatus.ACTIVE) {
             return Result.failure('User account is not active');
+        }
+
+        const session = await this.sessionRepository.findByJti(payload.jti);
+
+        if (!session) {
+            return Result.failure('Session not found or expired');
         }
 
         // 4. Generate new access token
@@ -64,7 +57,7 @@ export class RefreshTokenCase {
             jti: accessJti,
             vrs: cachedUser.token_version,
             level: cachedUser.level,
-            permissions: cachedUser.permissionCodes,
+            permissions: cachedUser.permissionCodes as any, // Cast if needed or fix UserCache interface
         };
 
         const accessToken = await this.tokenService.generateAccessToken(accessPayload, accessTtl);
@@ -84,7 +77,7 @@ export class RefreshTokenCase {
         // 5. Rotation logic: if refresh expires in less than threshold, rotate it
         const now = DateTime.now().toSeconds();
         const timeUntilExpiry = payload.exp - now;
-        let newRefreshToken: string | null = null;
+        let newRefreshToken: string | undefined = undefined;
 
         if (timeUntilExpiry < jwtThreshold) {
             // Rotate: delete old refresh session, create new one
