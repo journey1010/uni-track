@@ -1,9 +1,21 @@
 import { registerAs } from '@nestjs/config';
 
-export default registerAs('jwt', () => ({
-    secret: process.env.JWT_SECRET || 'default_secret_change_me',
-    accessTtl: parseInt(process.env.JWT_ACCESS_TTL || '900', 10),
-    refreshTtl: parseInt(process.env.JWT_REFRESH_TTL || '7200', 10),
-    audience: process.env.APP_ENV || 'local',
-    jwtThreshold: parseInt(process.env.JWT_THRESHOLD || '86400', 10),
-}));
+const DEFAULT_ACCESS_TTL = 900;
+const DEFAULT_REFRESH_TTL = 86400;
+const DEFAULT_THRESHOLD = 7200;
+
+export default registerAs('jwt', () => {
+    const toNumber = (value: string | undefined, fallback: number): number => {
+        if (value === undefined) return fallback;
+        const parsed = parseInt(value, 10);
+        return isNaN(parsed) ? fallback : parsed;
+    };
+
+    return {
+        secret: process.env.JWT_SECRET || 'default_secret_change_me',
+        accessTtl: toNumber(process.env.JWT_ACCESS_TTL, DEFAULT_ACCESS_TTL),
+        refreshTtl: toNumber(process.env.JWT_REFRESH_TTL, DEFAULT_REFRESH_TTL),
+        refreshThreshold: toNumber(process.env.JWT_THRESHOLD, DEFAULT_THRESHOLD),
+        audience: process.env.APP_ENV || 'local',
+    };
+});
