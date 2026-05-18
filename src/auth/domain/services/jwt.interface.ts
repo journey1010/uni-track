@@ -32,5 +32,5 @@ export interface IJwtService {
     generateAccessToken(payload: AccessTokenPayload, expiresIn: number): Promise<string>;
     generateRefreshToken(payload: RefreshTokenPayload, expiresIn: number): Promise<string>;
     verify<T extends object>(token: string): Promise<T>;
-    needTokenRotation(tokenTtl: number): boolean;
+    needTokenRotation(tokenTtl: number): Promise<boolean>;
 }

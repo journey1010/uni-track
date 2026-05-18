@@ -6,16 +6,15 @@ import { UserRepository } from '@modules/users/domain/repositories/user.reposito
 import { UserSessionRepository } from '@modules/users/domain/repositories/user-session.repository';
 import { TokenService } from '@modules/auth/infrastructure/services/jwt.services';
 import { AccessTokenPayload, RefreshTokenPayload } from '@modules/auth/domain/services/jwt.interface';
-import { SessionMeta } from '../infrastructure/decorators/session-meta.decorator';
+import { SessionMeta } from '@modules/auth/infrastructure/decorators/session-meta.decorator';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
-import { UserCache, UserCacheService, CACHE_USER_SERVICE } from '@modules/auth/domain/services/user-cache.interface';
+import { UserCacheService } from '@modules/auth/domain/services/user-cache.interface';
 import { DateTime } from '@config/timezone.config';
 
 @Injectable()
 export class RefreshTokenCase {
     constructor(
-        private readonly userRepository: UserRepository,
         private readonly sessionRepository: UserSessionRepository,
         private readonly tokenService: TokenService,
         private readonly configService: ConfigService,
@@ -26,15 +25,19 @@ export class RefreshTokenCase {
         payload: RefreshTokenPayload & { exp: number },
         meta: SessionMeta,
     ): Promise<Result<LoginResponseDto, string>> {
-        const userId = payload.sub;
-        const cachedUser = await this.getOrCacheUser(userId);
+        const user = await this.userCacheService.getUserById(payload.sub);
+        if (!user) {
+            
+        }
         
-        if (!cachedUser) {
-            return Result.failure('User not found');
+        if (user.status !== UserStatus.ACTIVE) {
+            return Result.failure('Credenciales invalidas o cuenta inactiva');
         }
 
-        if (cachedUser.status !== UserStatus.ACTIVE) {
-            return Result.failure('User account is not active');
+        const needTokenRotation = await this.tokenService.needTokenRotation(payload.exp);
+        
+        if(!needTokenRotation){
+            
         }
 
         const session = await this.sessionRepository.findByJti(payload.jti);
@@ -53,11 +56,11 @@ export class RefreshTokenCase {
         const accessPayload: AccessTokenPayload = {
             aud: audience,
             type: 'access',
-            sub: cachedUser.id,
+            sub: user.id,
             jti: accessJti,
-            vrs: cachedUser.token_version,
-            level: cachedUser.level,
-            permissions: cachedUser.permissionCodes as any, // Cast if needed or fix UserCache interface
+            vrs: user.token_version,
+            level: user.level,
+            permissions: user.permissionCodes as any, // Cast if needed or fix UserCache interface
         };
 
         const accessToken = await this.tokenService.generateAccessToken(accessPayload, accessTtl);
@@ -121,51 +124,4 @@ export class RefreshTokenCase {
             refresh_token: newRefreshToken,
         });
     }
-
-    /**
-     * Get user data from UserCacheService or fallback to DB.
-     */
-    private async getOrCacheUser(userId: string): Promise<UserCache | null> {
-        // Try cache first
-        const cached = await this.userCacheService.getUserById(userId);
-        if (cached) {
-            return cached;
-        }
-
-        // Fallback to DB
-        const user = await this.userRepository.findByIdWithPermissions(userId);
-
-        if (!user) {
-            return null;
-        }
-
-        // Unify permissions
-        const unifiedPermissions = await this.userRepository.getUnifiedPermissions(user.id);
-        
-        const permissionNames: string[] = [];
-        const permissionCodes: string[] = [];
-
-        unifiedPermissions.forEach((p) => {
-            permissionCodes.push(p.code);
-            permissionNames.push(p.name);
-        });
-
-        const userCache: UserCache = {
-            id: user.id,
-            name: user.name,
-            last_name: user.last_name,
-            email: user.email,
-            phone: user.phone,
-            status: user.status,
-            level: user.level,
-            token_version: user.token_version,
-            permissionCodes,
-            permissionNames,
-        };
-
-        await this.userCacheService.setUser(userCache);
-
-        return userCache;
-    }
 }
-

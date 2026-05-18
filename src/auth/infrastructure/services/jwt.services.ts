@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AccessTokenPayload, RefreshTokenPayload, IJwtService } from "@modules/auth/domain/services/jwt.interface";
 import { JwtService} from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { DateTime } from '@config/timezone.config';
 
 @Injectable()
 export class TokenService implements IJwtService {
@@ -37,8 +38,9 @@ export class TokenService implements IJwtService {
         return this.jwtService.verify<T>(token);
     }
 
-    async needTokenRotati(tokenTtl: number): Promise<boolean> {
+    async needTokenRotation(tokenTtl: number): Promise<boolean> {
         const refreshTtl = this.configService.get<number>('jwt.refreshThreshold')!;
-        return tokenTtl < refreshTtl;
+        const now = DateTime.now().toSeconds();
+        return tokenTtl > now + refreshTtl ? false: true;
     }
 }
