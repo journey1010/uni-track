@@ -7,7 +7,7 @@ export interface UserCache {
     status: number;
     level: number;
     token_version: number;
-    permissionCodes: string[];
+    permissionCodes: number[];
     permissionNames: string[];
 }
 
@@ -17,4 +17,5 @@ export abstract class UserCacheService {
     abstract getUserById(userId: string): Promise<UserCache | null>;
     abstract setUser(user: UserCache): Promise<void>;
     abstract deleteUser(userId: string): Promise<void>;
+    abstract getCachedOrFetchUser(userId: string): Promise<UserCache | null>;
 }

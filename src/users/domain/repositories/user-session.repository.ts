@@ -22,10 +22,6 @@ export class UserSessionRepository {
         return this.repository.insert(sessions);
     }
 
-    async findByJti(jti: string): Promise<UserSession | null> {
-        return this.repository.findOne({ where: { jti } });
-    }
-
     async findActiveByJti(jti: string, type: string): Promise<UserSession | null> {
         return this.repository.findOne({
             where: {
@@ -34,10 +30,6 @@ export class UserSessionRepository {
                 expires_at: MoreThan(new Date()),
             },
         });
-    }
-
-    async deleteByJti(jti: string): Promise<void> {
-        await this.repository.delete({ jti });
     }
 
     async deleteById(id: number): Promise<void> {

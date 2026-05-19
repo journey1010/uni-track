@@ -57,7 +57,7 @@ export class AuthController {
         @Req() req: any,
         @SessionMeta() meta: SessionMeta,
         @Res({ passthrough: true }) res: any,
-        @Headers('x-client-platform') platform: string
+        @Headers('x-client-platform') platform: string = 'web'
     ) {
         const result = await this.refreshTokenCase.execute(
             req.user,
@@ -71,7 +71,7 @@ export class AuthController {
         const response: LoginResponseDto = result.value!;
 
         if(platform !== 'mobile'){
-            this.setRefreshTokenCookie(res, response.refresh_token);
+            this.setRefreshTokenCookie(res, response.refresh_token!);
             delete response.refresh_token;
         }
 

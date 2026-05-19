@@ -6,20 +6,14 @@ import { Result } from '@Common/results';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { LoginDto } from '@modules/auth/infrastructure/validation/login.dto';
 import { UserRepository } from '@modules/users/domain/repositories/user.repository';
-import { UserSessionRepository } from '@modules/users/domain/repositories/user-session.repository';
-import { TokenService } from '@modules/auth/infrastructure/services/jwt.services';
-import { AccessTokenPayload, RefreshTokenPayload } from '@modules/auth/domain/services/jwt.interface';
-import { ConfigService } from '@nestjs/config';
-import { v4 as uuidv4 } from 'uuid';
 import { SessionMeta } from '../infrastructure/decorators/session-meta.decorator';
+import { AuthTokenService } from './services/auth-token.service';
 
 @Injectable()
 export class LoginUserCase {
     constructor(
         private readonly userRepository: UserRepository,
-        private readonly sessionRepository: UserSessionRepository,
-        private readonly tokenService: TokenService,
-        private readonly configService: ConfigService,
+        private readonly authTokenService: AuthTokenService,
     ) {}
 
     public async execute(dto: LoginDto, meta: SessionMeta): Promise<Result<LoginResponseDto, string>> {
@@ -44,53 +38,12 @@ export class LoginUserCase {
             permissionNames.push(p.name);
         });
 
-        const audience = this.configService.get<string>('jwt.audience')!;
-        const accessTtl = this.configService.get<number>('jwt.accessTtl')!;
-        const refreshTtl = this.configService.get<number>('jwt.refreshTtl')!;
-
-        const accessJti = uuidv4();
-        const refreshJti = uuidv4();
-
-        const accessPayload: AccessTokenPayload = {
-            aud: audience,
-            type: 'access',
-            sub: user.id,
-            jti: accessJti,
-            vrs: user.token_version,
+        const tokens = await this.authTokenService.generateAndPersistTokens({
+            id: user.id,
+            token_version: user.token_version,
             level: user.level,
-            permissions: permissionCodes,
-        };
-
-        const refreshPayload: RefreshTokenPayload = {
-            aud: audience,
-            type: 'refresh',
-            sub: user.id,
-            jti: refreshJti,
-        };
-
-        const tokens = await this.tokenService.generateAuthTokens(accessPayload, refreshPayload);
-
-        const accessSession = this.sessionRepository.create({
-            user_id: user.id,
-            jti: accessJti,
-            user_agent: meta.userAgent,
-            ip_address: meta.ip,
-            expires_at: DateTime.now().plus({ hours: accessTtl }).toJSDate(),
-            type: 'access',
-            last_used_at: DateTime.now().toJSDate(),
-        });
-
-        const refreshSession = this.sessionRepository.create({
-            user_id: user.id,
-            jti: refreshJti,
-            user_agent: meta.userAgent,
-            ip_address: meta.ip,
-            expires_at: DateTime.now().plus({ hours: refreshTtl }).toJSDate(),
-            type: 'refresh',
-            last_used_at: DateTime.now().toJSDate(),
-        });
-
-        await this.sessionRepository.saveMany([accessSession, refreshSession]);
+            permissionCodes,
+        }, meta);
 
         const response: LoginResponseDto = {
             name: user.name,
@@ -98,8 +51,8 @@ export class LoginUserCase {
             email: user.email,
             phone: user.phone,
             permissions: permissionNames,
-            access_token: tokens.access,
-            refresh_token: tokens.refresh,
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
         };
 
         return Result.success(response);

@@ -16,6 +16,7 @@ import { SessionCleanupTask } from './application/session-cleanup.task';
 import { UserRepository } from '@modules/users/domain/repositories/user.repository';
 import { UserSessionRepository } from '@modules/users/domain/repositories/user-session.repository';
 import { TokenService } from './infrastructure/services/jwt.services';
+import { AuthTokenService } from './application/services/auth-token.service';
 
 import { UserCacheService } from '@modules/auth/domain/services/user-cache.interface';
 import { UserCacheServiceImpl } from './infrastructure/services/user-cache.services';
@@ -47,6 +48,7 @@ import { RefreshTokenGuard } from './infrastructure/guards/refresh-token.guard';
         UserRepository,
         UserSessionRepository,
         TokenService,
+        AuthTokenService,
         {
             provide: UserCacheService,
             useClass: UserCacheServiceImpl,

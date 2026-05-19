@@ -15,7 +15,6 @@ export default registerAs('jwt', () => {
         secret: process.env.JWT_SECRET || 'default_secret_change_me',
         accessTtl: toNumber(process.env.JWT_ACCESS_TTL, DEFAULT_ACCESS_TTL) || process.env.JWT_ACCESS_TTL,
         refreshTtl: toNumber(process.env.JWT_REFRESH_TTL, DEFAULT_REFRESH_TTL) || process.env.JWT_REFRESH_TTL,
-        refreshThreshold: toNumber(process.env.JWT_THRESHOLD, DEFAULT_THRESHOLD) || process.env.JWT_THRESHOLD,
         audience: process.env.APP_ENV || 'local',
     };
 });
