@@ -18,11 +18,11 @@ export interface TokenConfig {
     audience: string;
     accessTtl: number;
     refreshTtl: number;
+    tokenRotationThreshold: number;
 }
 
 @Injectable()
 export class AuthTokenService {
-    private readonly TOKEN_ROTATION_THRESHOLD = 30 * 24 * 60 * 60; // 30 days in seconds
 
     constructor(
         private readonly configService: ConfigService,
@@ -30,19 +30,13 @@ export class AuthTokenService {
         private readonly sessionRepository: UserSessionRepository,
     ) {}
 
-    public getTokenConfig(): TokenConfig {
-        const audience: string = this.configService.getOrThrow<string>('jwt.audience');
-        const accessTtl: number = this.configService.getOrThrow<number>('jwt.accessTtl');
-        const refreshTtl: number = this.configService.getOrThrow<number>('jwt.refreshTtl');
-
-        return { audience, accessTtl, refreshTtl };
-    }
-
+    /**
+     * Generate and persist access and refresh tokens with their sessions
+     */
     public async generateAndPersistTokens(
         user: TokenUserData,
         meta: SessionMeta,
     ): Promise<{ access_token: string; refresh_token: string }> {
-        const { audience, accessTtl, refreshTtl } = this.getTokenConfig();
         const accessJti: string = uuidv4();
         const refreshJti: string = uuidv4();
 
@@ -98,7 +92,7 @@ export class AuthTokenService {
         meta: SessionMeta,
         expiresAt: number,
     ): Promise<{ access_token: string; refresh_token?: string }> {
-        const { audience, accessTtl, refreshTtl } = this.getTokenConfig();
+        const { audience, accessTtl, refreshTtl, tokenRotationThreshold } = this.getTokenConfig();
         const needsRotation = this.shouldRotateRefreshToken(expiresAt);
 
         const accessJti = uuidv4();

@@ -1,5 +1,10 @@
+import { 
+    AccessTokenPayload, 
+    RefreshTokenPayload, 
+    IJwtService, 
+    TokenConfig 
+} from "@modules/auth/domain/services/jwt.interface";
 import { Injectable } from '@nestjs/common';
-import { AccessTokenPayload, RefreshTokenPayload, IJwtService } from "@modules/auth/domain/services/jwt.interface";
 import { JwtService} from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { DateTime } from '@config/timezone.config';
@@ -15,22 +20,21 @@ export class TokenService implements IJwtService {
         accessPayload: AccessTokenPayload, 
         refreshPayload: RefreshTokenPayload
     ): Promise<{ access: string; refresh: string }> {
-        const accessTtl = this.configService.get<number>('jwt.accessTtl')!;
-        const refreshTtl = this.configService.get<number>('jwt.refreshTtl')!;
-
         const [access, refresh] = await Promise.all([
-            this.generateAccessToken(accessPayload, accessTtl),
-            this.generateRefreshToken(refreshPayload, refreshTtl),
+            this.generateAccessToken(accessPayload),
+            this.generateRefreshToken(refreshPayload),
         ]);
 
         return { access, refresh };
     }
 
-    async generateAccessToken(payload: AccessTokenPayload, expiresIn: number): Promise<string> {
+    async generateAccessToken(payload: AccessTokenPayload): Promise<string> {
+        const expiresIn: number = this.configService.getOrThrow<number>('jwt.accessTtl');
         return this.jwtService.signAsync(payload, { expiresIn });
     }
 
-    async generateRefreshToken(payload: RefreshTokenPayload, expiresIn: number): Promise<string> {
+    async generateRefreshToken(payload: RefreshTokenPayload): Promise<string> {
+        const expiresIn: number = this.configService.getOrThrow<number>('jwt.refreshTtl');
         return this.jwtService.signAsync(payload, { expiresIn });
     }
 

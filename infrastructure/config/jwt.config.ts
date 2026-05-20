@@ -16,5 +16,6 @@ export default registerAs('jwt', () => {
         accessTtl: toNumber(process.env.JWT_ACCESS_TTL, DEFAULT_ACCESS_TTL) || process.env.JWT_ACCESS_TTL,
         refreshTtl: toNumber(process.env.JWT_REFRESH_TTL, DEFAULT_REFRESH_TTL) || process.env.JWT_REFRESH_TTL,
         audience: process.env.APP_ENV || 'local',
+        tokenRotationThreshold: toNumber(process.env.JWT_TOKEN_ROTATION_THRESHOLD, DEFAULT_THRESHOLD) || process.env.JWT_TOKEN_ROTATION_THRESHOLD,
     };
 });

@@ -1,4 +1,3 @@
-
 export type AccessTokenPayload = {
     aud: string;
     type: 'access';
@@ -21,7 +20,15 @@ export type RefreshTokenPayload = {
     jti: string;
 }
 
+export type TokenConfig = {
+    audience: string;
+    accessTtl: number;
+    refreshTtl: number;
+    tokenRotationThreshold: number;
+}
+
 export type AccessPayloadExtend = AccessTokenPayload & TokenPayloadExtend;
+
 export type RefreshPayloadExtend = RefreshTokenPayload & TokenPayloadExtend;
 
 export interface IJwtService {
@@ -29,8 +36,8 @@ export interface IJwtService {
         accessPayload: AccessTokenPayload,
         refreshPayload: RefreshTokenPayload
     ): Promise<{ access: string; refresh: string }>;
-    generateAccessToken(payload: AccessTokenPayload, expiresIn: number): Promise<string>;
-    generateRefreshToken(payload: RefreshTokenPayload, expiresIn: number): Promise<string>;
+    generateAccessToken(payload: AccessTokenPayload): Promise<string>;
+    generateRefreshToken(payload: RefreshTokenPayload): Promise<string>;
     verify<T extends object>(token: string): Promise<T>;
     needTokenRotation(tokenTtl: number): Promise<boolean>;
 }
